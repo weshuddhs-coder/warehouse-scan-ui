@@ -5,104 +5,61 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Warehouse – Scan READY</title>
 
-  <!-- ====== BASIC STYLES (FAST, NO FRAMEWORK) ====== -->
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0;
-      background: #0f172a;
-      color: #e5e7eb;
+    body { font-family: system-ui, -apple-system, sans-serif; margin:0; background:#0f172a; color:#e5e7eb; }
+    header { padding:12px 16px; background:#020617; border-bottom:1px solid #1e293b; }
+    header h1 { font-size:18px; margin:0; }
+    header .row { display:flex; gap:12px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+    .pill { font-size:13px; padding:6px 10px; border-radius:999px; background:#111827; border:1px solid #334155; color:#cbd5e1; }
+    .pill strong { color:#fff; }
+    main { padding:12px; }
+    video { width:100%; max-height:55vh; background:black; border-radius:10px; }
+    .hint { margin-top:10px; font-size:14px; color:#94a3b8; }
+    .controls { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+    button {
+      padding:10px 12px; border-radius:8px; border:1px solid #334155; background:#111827;
+      color:#e5e7eb; font-size:14px;
     }
-    header {
-      padding: 12px 16px;
-      background: #020617;
-      border-bottom: 1px solid #1e293b;
-    }
-    header h1 {
-      font-size: 18px;
-      margin: 0;
-    }
-    header .counter {
-      margin-top: 4px;
-      font-size: 14px;
-      color: #94a3b8;
-    }
-    main {
-      padding: 12px;
-    }
-    video {
-      width: 100%;
-      max-height: 55vh;
-      background: black;
-      border-radius: 8px;
-    }
-    .hint {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #94a3b8;
-    }
-    .success-dot {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      background: #22c55e;
-      border-radius: 50%;
-      margin-right: 6px;
+    button.primary { background:#2563eb; border-color:#1d4ed8; }
+    input {
+      padding:10px 12px; border-radius:8px; border:1px solid #334155; background:#0b1220;
+      color:#e5e7eb; font-size:14px; min-width: 220px;
     }
 
     /* Error modal */
-    .modal {
-      position: fixed;
-      inset: 0;
-      background: rgba(2,6,23,0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      padding: 20px;
-      max-width: 320px;
-      text-align: center;
-    }
-    .modal-content h2 {
-      margin-top: 0;
-      color: #ef4444;
-    }
-    .modal-content button {
-      margin-top: 12px;
-      padding: 8px 14px;
-      background: #ef4444;
-      border: none;
-      color: white;
-      border-radius: 6px;
-      font-size: 14px;
-    }
+    .modal { position:fixed; inset:0; background:rgba(2,6,23,0.85); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .modal-content { background:#020617; border:1px solid #334155; border-radius:10px; padding:18px; max-width:340px; text-align:center; }
+    .modal-content h2 { margin:0 0 8px; color:#ef4444; }
+    .modal-content p { margin:0; color:#cbd5e1; }
+    .modal-content button { margin-top:12px; background:#ef4444; border:none; }
   </style>
 </head>
 
 <body>
-
-<!-- ====== HEADER ====== -->
 <header>
   <h1>📦 Scan READY</h1>
-  <div class="counter">
-    Today Ready Count: <strong id="readyCount">–</strong>
+  <div class="row">
+    <span class="pill">Today Ready: <strong id="readyCount">–</strong></span>
+    <span class="pill">Scanner: <strong id="scannerStatus">starting…</strong></span>
+    <span class="pill">Last AWB: <strong id="lastAwb">—</strong></span>
   </div>
 </header>
 
-<!-- ====== MAIN ====== -->
 <main>
   <video id="camera" autoplay playsinline></video>
+
+  <div class="controls">
+    <input id="manualAwb" placeholder="Manual AWB (fallback)" />
+    <button class="primary" id="manualSubmit">Submit</button>
+    <button id="toggleTorch" style="display:none;">Torch</button>
+    <button id="restartCam">Restart Camera</button>
+  </div>
+
   <div class="hint">
-    Point camera at AWB barcode. Successful scans continue automatically.
+    Tips: Keep barcode steady, fill ~40–60% of frame, good light. If camera scan fails, use manual/keyboard scanner.
   </div>
 </main>
 
-<!-- ====== ERROR MODAL ====== -->
 <div class="modal" id="errorModal">
   <div class="modal-content">
     <h2>Scan Error</h2>
@@ -111,109 +68,48 @@
   </div>
 </div>
 
-<!-- ====== SCRIPT ====== -->
 <script>
 /* =========================================================
-   CONFIG – CHANGE ONLY THESE WHEN NEEDED
+   CONFIG – CHANGE ONLY THESE
    ========================================================= */
-
 const API_BASE_URL = "https://pzgnggkanppnwnkjgwrm.supabase.co/functions/v1";
 const SCAN_READY_ENDPOINT = "/warehouse_scan_ready";
 
+/**
+ * IMPORTANT:
+ * Use a token that your Edge Function accepts.
+ * If your Edge Function has "Verify JWT" OFF, you can keep this blank
+ * and remove the Authorization header in submitScan().
+ */
 const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z25nZ2thbnBwbndua2pnd3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjAxODEsImV4cCI6MjA4NDg5NjE4MX0.YfKYz3XlnX3U8Nykq7CglD8lHpgnUq-Azk2r-xorX5k";
 
+/** Shows in logs as operator */
 const OPERATOR_NAME = "warehouse_user_1";
 
-/* =========================================================
-   INTERNAL STATE
-   ========================================================= */
+/** Barcode settings */
+const SCAN_COOLDOWN_MS = 900;          // prevents double submits
+const MIN_AWB_LEN = 6;                // sanity
+const MAX_AWB_LEN = 30;
+const BARCODE_FORMATS = [
+  "code_128", "code_39", "ean_13", "ean_8", "itf", "qr_code", "data_matrix", "upc_a", "upc_e"
+];
+/* ========================================================= */
 
-let lastScannedAt = 0;
 let stream = null;
+let detector = null;
+let scanning = false;
+let lastSubmitAt = 0;
+let lastValue = "";
 
-/* =========================================================
-   CAMERA SETUP
-   ========================================================= */
-
-async function startCamera() {
-  stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "environment" },
-    audio: false
-  });
-  document.getElementById("camera").srcObject = stream;
-}
-
-/* =========================================================
-   BARCODE SCAN (VERY LIGHTWEIGHT)
-   NOTE: For now we use keyboard-based scanners or
-   browser barcode detection fallback
-   ========================================================= */
-
-document.addEventListener("keydown", async (e) => {
-  if (e.key !== "Enter") return;
-
-  const now = Date.now();
-  if (now - lastScannedAt < 500) return;
-  lastScannedAt = now;
-
-  const awb = window._barcodeBuffer;
-  window._barcodeBuffer = "";
-
-  if (!awb) return;
-
-  await submitScan(awb.trim());
-});
-
-window._barcodeBuffer = "";
-document.addEventListener("keypress", (e) => {
-  if (e.key.length === 1) {
-    window._barcodeBuffer += e.key;
-  }
-});
-
-/* =========================================================
-   SCAN SUBMIT
-   ========================================================= */
-
-async function submitScan(awb) {
-  try {
-    const res = await fetch(API_BASE_URL + SCAN_READY_ENDPOINT, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + AUTH_TOKEN
-      },
-      body: JSON.stringify({
-        awb,
-        operator: OPERATOR_NAME
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || data.result !== "ACCEPTED") {
-      throw new Error(data.message || "Scan rejected");
-    }
-
-    incrementCounter();
-
-  } catch (err) {
-    showError(err.message || "Unknown error");
-  }
-}
-
-/* =========================================================
-   UI HELPERS
-   ========================================================= */
+/* ---------- UI helpers ---------- */
+function setScannerStatus(s) { document.getElementById("scannerStatus").textContent = s; }
+function setLastAwb(s) { document.getElementById("lastAwb").textContent = s || "—"; }
 
 function showError(msg) {
   document.getElementById("errorMessage").innerText = msg;
   document.getElementById("errorModal").style.display = "flex";
 }
-
-function closeError() {
-  document.getElementById("errorModal").style.display = "none";
-}
+function closeError() { document.getElementById("errorModal").style.display = "none"; }
 
 function incrementCounter() {
   const el = document.getElementById("readyCount");
@@ -221,14 +117,190 @@ function incrementCounter() {
   el.innerText = isNaN(current) ? 1 : current + 1;
 }
 
-/* =========================================================
-   INIT
-   ========================================================= */
+function normalizeAwb(raw) {
+  if (!raw) return "";
+  // Remove spaces and common junk, keep alnum + - _ only
+  const s = String(raw).trim().replace(/\s+/g, "");
+  const cleaned = s.replace(/[^A-Za-z0-9\-_]/g, "");
+  if (cleaned.length < MIN_AWB_LEN || cleaned.length > MAX_AWB_LEN) return "";
+  return cleaned;
+}
 
-startCamera().catch(err => {
-  showError("Camera access failed: " + err.message);
+/* ---------- Camera ---------- */
+async function stopCamera() {
+  scanning = false;
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  const video = document.getElementById("camera");
+  video.srcObject = null;
+}
+
+async function startCamera() {
+  await stopCamera();
+  setScannerStatus("requesting camera…");
+
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: "environment",
+      width: { ideal: 1280 },
+      height: { ideal: 720 }
+    },
+    audio: false
+  });
+
+  const video = document.getElementById("camera");
+  video.srcObject = stream;
+  await video.play();
+
+  // Torch support (if available)
+  setupTorchButton();
+
+  // BarcodeDetector support
+  if ("BarcodeDetector" in window) {
+    detector = new BarcodeDetector({ formats: BARCODE_FORMATS });
+    setScannerStatus("camera scan ON");
+    scanning = true;
+    requestAnimationFrame(scanLoop);
+  } else {
+    detector = null;
+    setScannerStatus("no BarcodeDetector (use manual/keyboard)");
+  }
+}
+
+function setupTorchButton() {
+  const btn = document.getElementById("toggleTorch");
+  btn.style.display = "none";
+
+  const track = stream?.getVideoTracks?.()[0];
+  if (!track) return;
+
+  const caps = track.getCapabilities?.();
+  if (!caps || !caps.torch) return;
+
+  let torchOn = false;
+  btn.style.display = "inline-block";
+  btn.onclick = async () => {
+    try {
+      torchOn = !torchOn;
+      await track.applyConstraints({ advanced: [{ torch: torchOn }] });
+      btn.textContent = torchOn ? "Torch: ON" : "Torch: OFF";
+    } catch (e) {
+      showError("Torch not supported on this device.");
+    }
+  };
+  btn.textContent = "Torch: OFF";
+}
+
+/* ---------- Scan loop ---------- */
+async function scanLoop() {
+  if (!scanning || !detector) return;
+
+  const video = document.getElementById("camera");
+  if (video.readyState < 2) {
+    requestAnimationFrame(scanLoop);
+    return;
+  }
+
+  try {
+    const barcodes = await detector.detect(video);
+    if (barcodes && barcodes.length) {
+      const raw = barcodes[0]?.rawValue || "";
+      const awb = normalizeAwb(raw);
+
+      // Avoid same value repeating frame-to-frame
+      if (awb && awb !== lastValue) {
+        lastValue = awb;
+        await submitScan(awb);
+      }
+    }
+  } catch (e) {
+    // if detect fails repeatedly, you can surface once
+    // but avoid spamming errors
+  }
+
+  requestAnimationFrame(scanLoop);
+}
+
+/* ---------- Submit scan to your Supabase Edge Function ---------- */
+async function submitScan(awb) {
+  const now = Date.now();
+  if (now - lastSubmitAt < SCAN_COOLDOWN_MS) return;
+  lastSubmitAt = now;
+
+  setLastAwb(awb);
+
+  try {
+    const headers = { "Content-Type": "application/json" };
+
+    // If your Edge Function requires auth, keep this:
+    if (AUTH_TOKEN && AUTH_TOKEN !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z25nZ2thbnBwbndua2pnd3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjAxODEsImV4cCI6MjA4NDg5NjE4MX0.YfKYz3XlnX3U8Nykq7CglD8lHpgnUq-Azk2r-xorX5k") {
+      headers["Authorization"] = "Bearer " + AUTH_TOKEN;
+    }
+
+    const res = await fetch(API_BASE_URL + SCAN_READY_ENDPOINT, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ awb, operator: OPERATOR_NAME })
+    });
+
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+
+    // Expecting your function to return { result: "ACCEPTED" | "REJECTED", message: "...", ... }
+    if (!res.ok) {
+      const msg = data?.message || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    if (data && data.result && data.result !== "ACCEPTED") {
+      throw new Error(data.message || "Scan rejected");
+    }
+
+    // Success
+    incrementCounter();
+
+  } catch (err) {
+    // On failure, show error so operator can go back to parcel
+    showError(err?.message || "Unknown error");
+  }
+}
+
+/* ---------- Manual submit ---------- */
+document.getElementById("manualSubmit").addEventListener("click", async () => {
+  const raw = document.getElementById("manualAwb").value;
+  const awb = normalizeAwb(raw);
+  if (!awb) return showError("Invalid AWB.");
+  document.getElementById("manualAwb").value = "";
+  lastValue = ""; // allow same to be scanned after manual
+  await submitScan(awb);
 });
-</script>
 
+document.getElementById("manualAwb").addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") document.getElementById("manualSubmit").click();
+});
+
+/* ---------- Keyboard scanner fallback (barcode gun typing + Enter) ---------- */
+window._buf = "";
+document.addEventListener("keypress", (e) => {
+  if (e.key.length === 1) window._buf += e.key;
+});
+document.addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+  const awb = normalizeAwb(window._buf);
+  window._buf = "";
+  if (!awb) return;
+  lastValue = ""; // allow same value later if needed
+  await submitScan(awb);
+});
+
+/* ---------- Restart camera ---------- */
+document.getElementById("restartCam").addEventListener("click", () => {
+  startCamera().catch(err => showError("Camera restart failed: " + err.message));
+});
+
+/* ---------- INIT ---------- */
+startCamera().catch(err => showError("Camera access failed: " + err.message));
+</script>
 </body>
 </html>
