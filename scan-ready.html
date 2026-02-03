@@ -9,34 +9,31 @@
     body { font-family: system-ui, -apple-system, sans-serif; margin:0; background:#0f172a; color:#e5e7eb; }
     header { padding:12px 16px; background:#020617; border-bottom:1px solid #1e293b; }
     header h1 { font-size:18px; margin:0; }
-    header .row { display:flex; gap:12px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+    header .row { display:flex; gap:10px; align-items:center; margin-top:6px; flex-wrap:wrap; }
     .pill { font-size:13px; padding:6px 10px; border-radius:999px; background:#111827; border:1px solid #334155; color:#cbd5e1; }
     .pill strong { color:#fff; }
 
     main { padding:12px; }
     .camera-wrap { position: relative; width: 100%; }
     video { width:100%; max-height:55vh; background:black; border-radius:10px; display:block; }
-    canvas#overlay {
-      position:absolute; left:0; top:0;
-      width:100%; height:100%;
-      pointer-events:none;
-    }
+    canvas#overlay { position:absolute; left:0; top:0; width:100%; height:100%; pointer-events:none; }
 
-    .hint { margin-top:10px; font-size:14px; color:#94a3b8; }
     .controls { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
     button {
       padding:10px 12px; border-radius:8px; border:1px solid #334155; background:#111827;
       color:#e5e7eb; font-size:14px; cursor:pointer;
     }
     button.primary { background:#2563eb; border-color:#1d4ed8; }
+    button.good { background:#16a34a; border-color:#15803d; }
     input {
       padding:10px 12px; border-radius:8px; border:1px solid #334155; background:#0b1220;
       color:#e5e7eb; font-size:14px; min-width: 220px;
     }
+    .hint { margin-top:10px; font-size:14px; color:#94a3b8; }
 
     /* Error modal */
     .modal { position:fixed; inset:0; background:rgba(2,6,23,0.85); display:none; align-items:center; justify-content:center; z-index:1000; }
-    .modal-content { background:#020617; border:1px solid #334155; border-radius:10px; padding:18px; max-width:380px; text-align:center; }
+    .modal-content { background:#020617; border:1px solid #334155; border-radius:10px; padding:18px; max-width:420px; text-align:center; }
     .modal-content h2 { margin:0 0 8px; color:#ef4444; }
     .modal-content p { margin:0; color:#cbd5e1; white-space:pre-wrap; }
     .modal-content button { margin-top:12px; background:#ef4444; border:none; }
@@ -78,14 +75,14 @@
   </div>
 
   <div class="controls">
+    <button class="good" id="enableSound">Enable Sound</button>
     <input id="manualAwb" placeholder="Manual AWB (fallback)" />
     <button class="primary" id="manualSubmit">Submit</button>
-    <button id="toggleTorch" style="display:none;">Torch</button>
     <button id="restartCam">Restart Camera</button>
   </div>
 
   <div class="hint">
-    Successful scan = beep + green toast. Only errors show popup.
+    ZXing camera scan. No time cooldown. It re-arms after barcode disappears once (prevents API spam).
   </div>
 </main>
 
@@ -99,64 +96,59 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 /* =========================================================
    CONFIG – CHANGE ONLY THESE
    ========================================================= */
 const API_BASE_URL = "https://pzgnggkanppnwnkjgwrm.supabase.co/functions/v1";
-
-// Edge functions
 const SCAN_READY_ENDPOINT = "/warehouse_scan_ready";
 const READY_COUNT_TODAY_ENDPOINT = "/warehouse_ready_count_today";
 
-// ✅ Your token
 const SCAN_APP_TOKEN = "ready_scan_4117";
-
-// Operator label
 const OPERATOR_NAME = "warehouse_user_1";
 
-// Scan tuning
-const SCAN_COOLDOWN_MS = 900;
+/**
+ * IMPORTANT:
+ * No "cooldown" timer. We prevent spam by requiring the barcode to disappear once
+ * before accepting the same value again.
+ */
 const MIN_AWB_LEN = 6;
 const MAX_AWB_LEN = 30;
 
-// Barcode formats
-const BARCODE_FORMATS = [
-  "code_128", "code_39", "ean_13", "ean_8", "itf", "qr_code", "data_matrix", "upc_a", "upc_e"
-];
-
-// Overlay styling
-const OVERLAY_LINE_WIDTH = 4;
+// ZXing ESM import (reliable)
+import { BrowserMultiFormatReader, NotFoundException } from "https://unpkg.com/@zxing/browser@0.1.5/esm/index.min.js";
 /* ========================================================= */
 
-let stream = null;
-let detector = null;
-let scanning = false;
-let lastSubmitAt = 0;
-let lastValue = "";
+let streamTrack = null;
+let reader = null;
 
-// overlay canvas context
-let overlayCanvas = null;
-let overlayCtx = null;
+let overlayCanvas = document.getElementById("overlay");
+let overlayCtx = overlayCanvas.getContext("2d");
 
-/* ---------- UI helpers ---------- */
+// Re-arm logic
+let lastSeenValue = "";
+let armed = true;              // if true, next detected barcode can fire submit
+let inFlight = false;          // prevents concurrent API calls
+
+// Sound
+let audioCtx = null;
+
 function setScannerStatus(s) { document.getElementById("scannerStatus").textContent = s; }
 function setLastAwb(s) { document.getElementById("lastAwb").textContent = s || "—"; }
-
-function showError(msg) {
-  document.getElementById("errorMessage").innerText = msg;
-  document.getElementById("errorModal").style.display = "flex";
-}
-function closeError() { document.getElementById("errorModal").style.display = "none"; }
-
-function setCounter(val) {
-  document.getElementById("readyCount").innerText = String(val);
-}
+function setCounter(val) { document.getElementById("readyCount").innerText = String(val); }
 function incrementCounter() {
   const el = document.getElementById("readyCount");
   const current = parseInt(el.innerText || "0", 10);
   el.innerText = isNaN(current) ? 1 : current + 1;
 }
+
+function showError(msg) {
+  document.getElementById("errorMessage").innerText = msg;
+  document.getElementById("errorModal").style.display = "flex";
+}
+window.closeError = function closeError() {
+  document.getElementById("errorModal").style.display = "none";
+};
 
 function showToast(text) {
   const t = document.getElementById("toast");
@@ -166,24 +158,6 @@ function showToast(text) {
   window.__toastTimer = setTimeout(() => t.style.display = "none", 900);
 }
 
-/* Success beep (WebAudio) */
-function successBeep() {
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    const ctx = new AudioCtx();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = "sine";
-    o.frequency.value = 880; // A5-ish
-    g.gain.value = 0.08;
-    o.connect(g);
-    g.connect(ctx.destination);
-    o.start();
-    setTimeout(() => { o.stop(); ctx.close(); }, 90);
-  } catch {}
-}
-
-/* ---------- Helpers ---------- */
 function normalizeAwb(raw) {
   if (!raw) return "";
   const s = String(raw).trim().replace(/\s+/g, "");
@@ -192,31 +166,69 @@ function normalizeAwb(raw) {
   return cleaned;
 }
 
+function syncOverlayToVideo() {
+  const video = document.getElementById("camera");
+  const vw = video.videoWidth || video.clientWidth;
+  const vh = video.videoHeight || video.clientHeight;
+  overlayCanvas.width = vw;
+  overlayCanvas.height = vh;
+}
+
 function clearOverlay() {
-  if (!overlayCtx || !overlayCanvas) return;
   overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 }
 
-function drawOverlayBox(boundingBox) {
-  if (!overlayCtx || !overlayCanvas || !boundingBox) return;
-
-  // Clear previous
+function drawOverlayFromPoints(points) {
+  // points: [{x,y}...]
+  if (!points || !points.length) return;
   clearOverlay();
 
-  // BarcodeDetector boundingBox is relative to the video element’s intrinsic size (usually)
-  // We map it to the displayed video using canvas dimensions (which we keep synced).
-  const { x, y, width, height } = boundingBox;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const p of points) {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  }
+  const w = maxX - minX;
+  const h = maxY - minY;
 
-  // Make it green
-  overlayCtx.lineWidth = OVERLAY_LINE_WIDTH;
+  overlayCtx.lineWidth = 4;
   overlayCtx.strokeStyle = "rgba(34,197,94,0.95)";
   overlayCtx.fillStyle = "rgba(34,197,94,0.12)";
-
-  overlayCtx.strokeRect(x, y, width, height);
-  overlayCtx.fillRect(x, y, width, height);
+  overlayCtx.strokeRect(minX, minY, w, h);
+  overlayCtx.fillRect(minX, minY, w, h);
 }
 
-/* ---------- Count fetch (so it doesn't reset to 0 on reload) ---------- */
+function beepSuccess() {
+  // Requires user to tap "Enable Sound" once
+  if (!audioCtx) return;
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "square";
+    o.frequency.value = 980;
+    g.gain.value = 0.08;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    o.start();
+    setTimeout(() => { o.stop(); }, 90);
+  } catch {}
+}
+
+document.getElementById("enableSound").addEventListener("click", async () => {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    audioCtx = new AudioCtx();
+    await audioCtx.resume(); // unlock
+    showToast("Sound enabled ✅");
+    document.getElementById("enableSound").disabled = true;
+    document.getElementById("enableSound").innerText = "Sound ON";
+  } catch {
+    showError("Unable to enable sound on this device/browser.");
+  }
+});
+
 async function loadTodayReadyCount() {
   try {
     const res = await fetch(API_BASE_URL + READY_COUNT_TODAY_ENDPOINT, {
@@ -227,144 +239,18 @@ async function loadTodayReadyCount() {
       },
       body: JSON.stringify({})
     });
-
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
-
     const n = Number(data?.ready_today);
     setCounter(Number.isFinite(n) ? n : "—");
-  } catch (e) {
-    // If count endpoint isn’t deployed yet, keep dash
+  } catch {
     setCounter("—");
   }
 }
 
-/* ---------- Camera ---------- */
-async function stopCamera() {
-  scanning = false;
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-    stream = null;
-  }
-  const video = document.getElementById("camera");
-  video.srcObject = null;
-  clearOverlay();
-}
-
-function syncOverlayToVideo() {
-  const video = document.getElementById("camera");
-  if (!overlayCanvas) return;
-
-  // Use the video’s intrinsic resolution if available, else fallback to client rect
-  const vw = video.videoWidth || video.clientWidth;
-  const vh = video.videoHeight || video.clientHeight;
-
-  overlayCanvas.width = vw;
-  overlayCanvas.height = vh;
-}
-
-async function startCamera() {
-  await stopCamera();
-  setScannerStatus("requesting camera…");
-
-  stream = await navigator.mediaDevices.getUserMedia({
-    video: {
-      facingMode: "environment",
-      width: { ideal: 1280 },
-      height: { ideal: 720 }
-    },
-    audio: false
-  });
-
-  const video = document.getElementById("camera");
-  video.srcObject = stream;
-  await video.play();
-
-  // overlay init
-  overlayCanvas = document.getElementById("overlay");
-  overlayCtx = overlayCanvas.getContext("2d");
-
-  video.onloadedmetadata = () => syncOverlayToVideo();
-  syncOverlayToVideo();
-
-  setupTorchButton();
-
-  if ("BarcodeDetector" in window) {
-    detector = new BarcodeDetector({ formats: BARCODE_FORMATS });
-    setScannerStatus("camera scan ON");
-    scanning = true;
-    requestAnimationFrame(scanLoop);
-  } else {
-    detector = null;
-    setScannerStatus("no BarcodeDetector (use manual/keyboard)");
-  }
-}
-
-function setupTorchButton() {
-  const btn = document.getElementById("toggleTorch");
-  btn.style.display = "none";
-
-  const track = stream?.getVideoTracks?.()[0];
-  if (!track) return;
-
-  const caps = track.getCapabilities?.();
-  if (!caps || !caps.torch) return;
-
-  let torchOn = false;
-  btn.style.display = "inline-block";
-  btn.onclick = async () => {
-    try {
-      torchOn = !torchOn;
-      await track.applyConstraints({ advanced: [{ torch: torchOn }] });
-      btn.textContent = torchOn ? "Torch: ON" : "Torch: OFF";
-    } catch {
-      showError("Torch not supported on this device.");
-    }
-  };
-  btn.textContent = "Torch: OFF";
-}
-
-/* ---------- Scan loop ---------- */
-async function scanLoop() {
-  if (!scanning || !detector) return;
-
-  const video = document.getElementById("camera");
-  if (video.readyState < 2) {
-    requestAnimationFrame(scanLoop);
-    return;
-  }
-
-  try {
-    const barcodes = await detector.detect(video);
-
-    if (barcodes && barcodes.length) {
-      const b0 = barcodes[0];
-      const raw = b0?.rawValue || "";
-      const awb = normalizeAwb(raw);
-
-      // show outline on whatever we’re seeing (even if normalize fails)
-      if (b0?.boundingBox) drawOverlayBox(b0.boundingBox);
-
-      if (awb && awb !== lastValue) {
-        lastValue = awb;
-        await submitScan(awb);
-      }
-    } else {
-      // nothing detected → clear overlay so user knows it's searching
-      clearOverlay();
-    }
-  } catch {
-    // keep quiet, don’t spam errors
-  }
-
-  requestAnimationFrame(scanLoop);
-}
-
-/* ---------- Submit scan ---------- */
 async function submitScan(awb) {
-  const now = Date.now();
-  if (now - lastSubmitAt < SCAN_COOLDOWN_MS) return;
-  lastSubmitAt = now;
+  if (inFlight) return; // avoid double API calls if camera sees multiple quickly
+  inFlight = true;
 
   setLastAwb(awb);
 
@@ -380,61 +266,118 @@ async function submitScan(awb) {
 
     const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
-      throw new Error(data?.message || `HTTP ${res.status}`);
-    }
-
+    if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`);
     if (data?.result && data.result !== "ACCEPTED") {
+      // This is where your duplicate scan / already READY errors will show
       throw new Error(data.message || "Scan rejected");
     }
 
-    // ✅ Success feedback
+    // success feedback
     incrementCounter();
-    successBeep();
+    beepSuccess();
     if (navigator.vibrate) navigator.vibrate(40);
     showToast(`ACCEPTED: ${awb}`);
 
   } catch (err) {
     showError(err?.message || "Unknown error");
+  } finally {
+    inFlight = false;
   }
 }
 
-/* ---------- Manual submit ---------- */
+async function startZXing() {
+  setScannerStatus("requesting camera…");
+
+  const video = document.getElementById("camera");
+  reader = new BrowserMultiFormatReader();
+
+  // ZXing handles camera itself, but we use its stream (internally)
+  // decodeFromVideoDevice will keep scanning
+  setScannerStatus("zxing scan ON");
+
+  await reader.decodeFromVideoDevice(
+    undefined, // default camera (usually back camera on mobile)
+    video,
+    async (result, err, controls) => {
+      // Save track for stopping later
+      try {
+        const tracks = video?.srcObject?.getTracks?.();
+        if (tracks && tracks[0]) streamTrack = tracks[0];
+      } catch {}
+
+      // Keep overlay synced
+      if (video.videoWidth) syncOverlayToVideo();
+
+      if (result) {
+        // Outline: use resultPoints if present
+        const pts = result.getResultPoints?.();
+        if (pts && pts.length) {
+          drawOverlayFromPoints(pts.map(p => ({ x: p.getX(), y: p.getY() })));
+        }
+
+        const raw = result.getText?.() || "";
+        const awb = normalizeAwb(raw);
+
+        if (!awb) return;
+
+        // Re-arm logic:
+        // - If barcode is still the same and not "armed", don't submit again.
+        // - It becomes armed again only when barcode disappears (NotFound) OR a different barcode appears.
+        if (awb !== lastSeenValue) {
+          lastSeenValue = awb;
+          armed = true; // new value → allow submit
+        }
+
+        if (armed) {
+          armed = false; // fire once for this appearance
+          await submitScan(awb);
+        }
+
+      } else if (err) {
+        // When nothing is detected, ZXing usually throws NotFoundException
+        if (err instanceof NotFoundException) {
+          clearOverlay();
+          // Barcode disappeared → re-arm
+          armed = true;
+          return;
+        }
+
+        // Other errors: ignore (don’t spam)
+      }
+    }
+  );
+}
+
+document.getElementById("restartCam").addEventListener("click", async () => {
+  try {
+    clearOverlay();
+    armed = true;
+    lastSeenValue = "";
+    if (reader) reader.reset();
+    await startZXing();
+  } catch (e) {
+    showError("Restart failed. " + (e?.message || e));
+  }
+});
+
+// Manual submit
 document.getElementById("manualSubmit").addEventListener("click", async () => {
   const raw = document.getElementById("manualAwb").value;
   const awb = normalizeAwb(raw);
   if (!awb) return showError("Invalid AWB.");
   document.getElementById("manualAwb").value = "";
-  lastValue = "";
+  // allow same again
+  lastSeenValue = "";
+  armed = true;
   await submitScan(awb);
 });
-
 document.getElementById("manualAwb").addEventListener("keydown", (e) => {
   if (e.key === "Enter") document.getElementById("manualSubmit").click();
 });
 
-/* ---------- Keyboard scanner fallback (barcode gun typing + Enter) ---------- */
-window._buf = "";
-document.addEventListener("keypress", (e) => {
-  if (e.key.length === 1) window._buf += e.key;
-});
-document.addEventListener("keydown", async (e) => {
-  if (e.key !== "Enter") return;
-  const awb = normalizeAwb(window._buf);
-  window._buf = "";
-  if (!awb) return;
-  lastValue = "";
-  await submitScan(awb);
-});
-
-/* ---------- Restart camera ---------- */
-document.getElementById("restartCam").addEventListener("click", () => {
-  startCamera().catch(err => showError("Camera restart failed: " + err.message));
-});
-
-/* ---------- INIT ---------- */
+// Init
 loadTodayReadyCount();
-startCamera().catch(err => showError("Camera access failed: " + err.message));
+startZXing().catch(err => showError("Camera start failed: " + (err?.message || err)));
 </script>
 </body>
 </html>
