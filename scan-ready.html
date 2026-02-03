@@ -18,7 +18,7 @@
     .controls { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
     button {
       padding:10px 12px; border-radius:8px; border:1px solid #334155; background:#111827;
-      color:#e5e7eb; font-size:14px;
+      color:#e5e7eb; font-size:14px; cursor:pointer;
     }
     button.primary { background:#2563eb; border-color:#1d4ed8; }
     input {
@@ -28,9 +28,9 @@
 
     /* Error modal */
     .modal { position:fixed; inset:0; background:rgba(2,6,23,0.85); display:none; align-items:center; justify-content:center; z-index:1000; }
-    .modal-content { background:#020617; border:1px solid #334155; border-radius:10px; padding:18px; max-width:340px; text-align:center; }
+    .modal-content { background:#020617; border:1px solid #334155; border-radius:10px; padding:18px; max-width:360px; text-align:center; }
     .modal-content h2 { margin:0 0 8px; color:#ef4444; }
-    .modal-content p { margin:0; color:#cbd5e1; }
+    .modal-content p { margin:0; color:#cbd5e1; white-space:pre-wrap; }
     .modal-content button { margin-top:12px; background:#ef4444; border:none; }
   </style>
 </head>
@@ -39,7 +39,7 @@
 <header>
   <h1>📦 Scan READY</h1>
   <div class="row">
-    <span class="pill">Today Ready: <strong id="readyCount">–</strong></span>
+    <span class="pill">Today Ready: <strong id="readyCount">0</strong></span>
     <span class="pill">Scanner: <strong id="scannerStatus">starting…</strong></span>
     <span class="pill">Last AWB: <strong id="lastAwb">—</strong></span>
   </div>
@@ -56,7 +56,7 @@
   </div>
 
   <div class="hint">
-    Tips: Keep barcode steady, fill ~40–60% of frame, good light. If camera scan fails, use manual/keyboard scanner.
+    Tips: Good light, fill 40–60% frame, hold steady ~0.5s. If camera scan fails, use manual/keyboard scanner.
   </div>
 </main>
 
@@ -75,21 +75,18 @@
 const API_BASE_URL = "https://pzgnggkanppnwnkjgwrm.supabase.co/functions/v1";
 const SCAN_READY_ENDPOINT = "/warehouse_scan_ready";
 
-/**
- * IMPORTANT:
- * Use a token that your Edge Function accepts.
- * If your Edge Function has "Verify JWT" OFF, you can keep this blank
- * and remove the Authorization header in submitScan().
- */
-const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z25nZ2thbnBwbndua2pnd3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjAxODEsImV4cCI6MjA4NDg5NjE4MX0.YfKYz3XlnX3U8Nykq7CglD8lHpgnUq-Azk2r-xorX5k";
+// ✅ Your token (Edge Function secret SCAN_APP_TOKEN)
+const SCAN_APP_TOKEN = "ready_scan_4117";
 
-/** Shows in logs as operator */
+// Shows in logs as operator (you can later replace with login)
 const OPERATOR_NAME = "warehouse_user_1";
 
-/** Barcode settings */
-const SCAN_COOLDOWN_MS = 900;          // prevents double submits
-const MIN_AWB_LEN = 6;                // sanity
+// Scan tuning
+const SCAN_COOLDOWN_MS = 900;          // prevent double submits
+const MIN_AWB_LEN = 6;
 const MAX_AWB_LEN = 30;
+
+// BarcodeDetector formats (common courier labels)
 const BARCODE_FORMATS = [
   "code_128", "code_39", "ean_13", "ean_8", "itf", "qr_code", "data_matrix", "upc_a", "upc_e"
 ];
@@ -119,7 +116,6 @@ function incrementCounter() {
 
 function normalizeAwb(raw) {
   if (!raw) return "";
-  // Remove spaces and common junk, keep alnum + - _ only
   const s = String(raw).trim().replace(/\s+/g, "");
   const cleaned = s.replace(/[^A-Za-z0-9\-_]/g, "");
   if (cleaned.length < MIN_AWB_LEN || cleaned.length > MAX_AWB_LEN) return "";
@@ -154,10 +150,8 @@ async function startCamera() {
   video.srcObject = stream;
   await video.play();
 
-  // Torch support (if available)
   setupTorchButton();
 
-  // BarcodeDetector support
   if ("BarcodeDetector" in window) {
     detector = new BarcodeDetector({ formats: BARCODE_FORMATS });
     setScannerStatus("camera scan ON");
@@ -209,21 +203,19 @@ async function scanLoop() {
       const raw = barcodes[0]?.rawValue || "";
       const awb = normalizeAwb(raw);
 
-      // Avoid same value repeating frame-to-frame
       if (awb && awb !== lastValue) {
         lastValue = awb;
         await submitScan(awb);
       }
     }
   } catch (e) {
-    // if detect fails repeatedly, you can surface once
-    // but avoid spamming errors
+    // don't spam errors here
   }
 
   requestAnimationFrame(scanLoop);
 }
 
-/* ---------- Submit scan to your Supabase Edge Function ---------- */
+/* ---------- Submit scan to Supabase Edge Function ---------- */
 async function submitScan(awb) {
   const now = Date.now();
   if (now - lastSubmitAt < SCAN_COOLDOWN_MS) return;
@@ -232,37 +224,35 @@ async function submitScan(awb) {
   setLastAwb(awb);
 
   try {
-    const headers = { "Content-Type": "application/json" };
-
-    // If your Edge Function requires auth, keep this:
-    if (AUTH_TOKEN && AUTH_TOKEN !== "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z25nZ2thbnBwbndua2pnd3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjAxODEsImV4cCI6MjA4NDg5NjE4MX0.YfKYz3XlnX3U8Nykq7CglD8lHpgnUq-Azk2r-xorX5k") {
-      headers["Authorization"] = "Bearer " + AUTH_TOKEN;
-    }
-
     const res = await fetch(API_BASE_URL + SCAN_READY_ENDPOINT, {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Scan-Token": SCAN_APP_TOKEN
+      },
       body: JSON.stringify({ awb, operator: OPERATOR_NAME })
     });
 
     let data = null;
     try { data = await res.json(); } catch { data = null; }
 
-    // Expecting your function to return { result: "ACCEPTED" | "REJECTED", message: "...", ... }
     if (!res.ok) {
       const msg = data?.message || `HTTP ${res.status}`;
       throw new Error(msg);
     }
-    if (data && data.result && data.result !== "ACCEPTED") {
+
+    // Accept both:
+    // - {result:"ACCEPTED"}
+    // - OR if you return 200 with result:"REJECTED"
+    if (data?.result && data.result !== "ACCEPTED") {
       throw new Error(data.message || "Scan rejected");
     }
 
-    // Success
+    // success
     incrementCounter();
 
   } catch (err) {
-    // On failure, show error so operator can go back to parcel
-    showError(err?.message || "Unknown error");
+    showError((err && err.message) ? err.message : "Failed to fetch / unknown error");
   }
 }
 
@@ -272,7 +262,7 @@ document.getElementById("manualSubmit").addEventListener("click", async () => {
   const awb = normalizeAwb(raw);
   if (!awb) return showError("Invalid AWB.");
   document.getElementById("manualAwb").value = "";
-  lastValue = ""; // allow same to be scanned after manual
+  lastValue = "";
   await submitScan(awb);
 });
 
@@ -290,7 +280,7 @@ document.addEventListener("keydown", async (e) => {
   const awb = normalizeAwb(window._buf);
   window._buf = "";
   if (!awb) return;
-  lastValue = ""; // allow same value later if needed
+  lastValue = "";
   await submitScan(awb);
 });
 
