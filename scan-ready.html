@@ -1,12 +1,234 @@
 <!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Scan Ready Test</title>
-  </head>
-  <body style="font-family: system-ui; padding: 24px;">
-    <h1>✅ Scan Ready is working</h1>
-    <p>If you can read this normally (not as code), hosting is fixed.</p>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Warehouse – Scan READY</title>
+
+  <!-- ====== BASIC STYLES (FAST, NO FRAMEWORK) ====== -->
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      margin: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    header {
+      padding: 12px 16px;
+      background: #020617;
+      border-bottom: 1px solid #1e293b;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    header .counter {
+      margin-top: 4px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    main {
+      padding: 12px;
+    }
+    video {
+      width: 100%;
+      max-height: 55vh;
+      background: black;
+      border-radius: 8px;
+    }
+    .hint {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .success-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #22c55e;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    /* Error modal */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(2,6,23,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 320px;
+      text-align: center;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      color: #ef4444;
+    }
+    .modal-content button {
+      margin-top: 12px;
+      padding: 8px 14px;
+      background: #ef4444;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- ====== HEADER ====== -->
+<header>
+  <h1>📦 Scan READY</h1>
+  <div class="counter">
+    Today Ready Count: <strong id="readyCount">–</strong>
+  </div>
+</header>
+
+<!-- ====== MAIN ====== -->
+<main>
+  <video id="camera" autoplay playsinline></video>
+  <div class="hint">
+    Point camera at AWB barcode. Successful scans continue automatically.
+  </div>
+</main>
+
+<!-- ====== ERROR MODAL ====== -->
+<div class="modal" id="errorModal">
+  <div class="modal-content">
+    <h2>Scan Error</h2>
+    <p id="errorMessage"></p>
+    <button onclick="closeError()">OK</button>
+  </div>
+</div>
+
+<!-- ====== SCRIPT ====== -->
+<script>
+/* =========================================================
+   CONFIG – CHANGE ONLY THESE WHEN NEEDED
+   ========================================================= */
+
+const API_BASE_URL = "https://pzgnggkanppnwnkjgwrm.supabase.co/functions/v1";
+const SCAN_READY_ENDPOINT = "/warehouse_scan_ready";
+
+const AUTH_TOKEN = "PASTE_YOUR_SERVICE_OR_PUBLIC_TOKEN_HERE";
+
+const OPERATOR_NAME = "warehouse_user_1";
+
+/* =========================================================
+   INTERNAL STATE
+   ========================================================= */
+
+let lastScannedAt = 0;
+let stream = null;
+
+/* =========================================================
+   CAMERA SETUP
+   ========================================================= */
+
+async function startCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "environment" },
+    audio: false
+  });
+  document.getElementById("camera").srcObject = stream;
+}
+
+/* =========================================================
+   BARCODE SCAN (VERY LIGHTWEIGHT)
+   NOTE: For now we use keyboard-based scanners or
+   browser barcode detection fallback
+   ========================================================= */
+
+document.addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter") return;
+
+  const now = Date.now();
+  if (now - lastScannedAt < 500) return;
+  lastScannedAt = now;
+
+  const awb = window._barcodeBuffer;
+  window._barcodeBuffer = "";
+
+  if (!awb) return;
+
+  await submitScan(awb.trim());
+});
+
+window._barcodeBuffer = "";
+document.addEventListener("keypress", (e) => {
+  if (e.key.length === 1) {
+    window._barcodeBuffer += e.key;
+  }
+});
+
+/* =========================================================
+   SCAN SUBMIT
+   ========================================================= */
+
+async function submitScan(awb) {
+  try {
+    const res = await fetch(API_BASE_URL + SCAN_READY_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + AUTH_TOKEN
+      },
+      body: JSON.stringify({
+        awb,
+        operator: OPERATOR_NAME
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || data.result !== "ACCEPTED") {
+      throw new Error(data.message || "Scan rejected");
+    }
+
+    incrementCounter();
+
+  } catch (err) {
+    showError(err.message || "Unknown error");
+  }
+}
+
+/* =========================================================
+   UI HELPERS
+   ========================================================= */
+
+function showError(msg) {
+  document.getElementById("errorMessage").innerText = msg;
+  document.getElementById("errorModal").style.display = "flex";
+}
+
+function closeError() {
+  document.getElementById("errorModal").style.display = "none";
+}
+
+function incrementCounter() {
+  const el = document.getElementById("readyCount");
+  const current = parseInt(el.innerText || "0", 10);
+  el.innerText = isNaN(current) ? 1 : current + 1;
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+
+startCamera().catch(err => {
+  showError("Camera access failed: " + err.message);
+});
+</script>
+
+</body>
 </html>
