@@ -1,0 +1,392 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title></title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="2685.3">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000}
+    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; -webkit-text-stroke: #000000; min-height: 14.0px}
+    span.s1 {font-kerning: none}
+    span.s2 {font: 12.0px 'Lucida Grande'; font-kerning: none}
+    span.s3 {font: 12.0px 'Apple Color Emoji'; font-kerning: none}
+  </style>
+</head>
+<body>
+<p class="p1"><span class="s1">&lt;!doctype html&gt;</span></p>
+<p class="p1"><span class="s1">&lt;html lang="en"&gt;</span></p>
+<p class="p1"><span class="s1">&lt;head&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta charset="utf-8" /&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" /&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;title&gt;Warehouse — Scan READY&lt;/title&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;style&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; background: #0b0f14; color: #e7eef7; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.topbar { position: sticky; top: 0; background: rgba(11,15,20,0.98); padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); z-index: 10; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.pill { border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 6px 10px; font-size: 14px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.pill b { font-weight: 700; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.btn { background: #1b2633; color: #e7eef7; border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 8px 10px; font-weight: 600; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.btn:active { transform: scale(0.99); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.main { padding: 12px; display: grid; gap: 12px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.card { background: #0f151d; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.videoWrap { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.10); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>video { width: 100%; height: auto; display: block; background: #000; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.hint { font-size: 13px; opacity: 0.8; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.inputRow { display: flex; gap: 8px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>input { flex: 1; background: #0b0f14; color: #e7eef7; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; font-size: 16px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.statusLine { display: flex; align-items: center; gap: 10px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.25); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.dot.green { background: #37d67a; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.dot.red { background: #ff6b6b; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.dot.yellow { background: #f5c542; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; max-height: 220px; overflow: auto; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.li { display: flex; justify-content: space-between; gap: 10px; padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.awb { font-weight: 800; letter-spacing: 0.3px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.small { font-size: 12px; opacity: 0.75; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>/* error modal */</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.modalBackdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: none; align-items: center; justify-content: center; z-index: 100; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.modal { width: min(92vw, 520px); background: #151018; border: 1px solid rgba(255,255,255,0.10); border-radius: 16px; padding: 14px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.modal h3 { margin: 0 0 8px 0; color: #ff7b7b; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.modal pre { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; opacity: 0.95; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.modal .actions { display: flex; justify-content: flex-end; margin-top: 12px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>.kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 8px; }</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/style&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/head&gt;</span></p>
+<p class="p1"><span class="s1">&lt;body&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="topbar"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="row"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="pill"&gt;Mode: &lt;b&gt;READY&lt;/b&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="pill"&gt;Today READY: &lt;b id="todayReady"&gt;—&lt;/b&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="pill"&gt;This batch: &lt;b id="batchCount"&gt;0&lt;/b&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="resetBatch"&gt;Reset batch&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;button class="btn" id="toggleCamera"&gt;Start camera&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="hint" style="margin-top:6px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>Works fastest with a Bluetooth scanner: click input </span><span class="s2">→</span><span class="s1"> scan </span><span class="s2">→</span><span class="s1"> it auto-submits (&lt;span class="kbd"&gt;Enter&lt;/span&gt;).</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="main"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="statusLine"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div class="dot" id="statusDot"&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div id="statusText" style="font-weight:800;"&gt;Ready to scan&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="small" id="statusSub"&gt;Waiting…&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="inputRow" style="margin-top:12px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;input id="awbInput" placeholder="Scan / type AWB and press Enter" autocomplete="off" inputmode="text" /&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="btn" id="submitBtn"&gt;Submit&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="small" style="margin-top:8px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>Accepted scans (max 30) shown below. Errors show as popup.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div style="font-weight:800; margin-bottom:10px;"&gt;Camera Scanner&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="videoWrap"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;video id="video" playsinline muted&gt;&lt;/video&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="hint" style="margin-top:10px;"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>If camera scan fails on your device, use input box (best with Bluetooth scanner).</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="card"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div style="font-weight:800; margin-bottom:10px;"&gt;Accepted in this batch&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;ul class="list" id="acceptedList"&gt;&lt;/ul&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;!-- Error Modal --&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;div class="modalBackdrop" id="modalBackdrop"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;div class="modal"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;h3&gt;Scan Rejected&lt;/h3&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;pre id="modalMsg"&gt;&lt;/pre&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;div class="actions"&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;button class="btn" id="closeModal"&gt;OK&lt;/button&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1">&lt;script&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>/***********************</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">   </span>* CONFIG — CHANGE THESE</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">   </span>***********************/</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const SUPABASE_PROJECT_URL = "https://pzgnggkanppnwnkjgwrm.supabase.co";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const EDGE_SCAN_READY_PATH = "/functions/v1/warehouse_scan_ready";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const EDGE_COUNTS_PATH <span class="Apple-converted-space">    </span>= "/functions/v1/warehouse_ready_counts";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// </span><span class="s3">✅</span><span class="s1"> Put your current working token here for now.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Later we replace with proper login and session token.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const AUTH_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z25nZ2thbnBwbndua2pnd3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjAxODEsImV4cCI6MjA4NDg5NjE4MX0.YfKYz3XlnX3U8Nykq7CglD8lHpgnUq-Azk2r-xorX5k";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Optional but safe in Edge calls:</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6Z25nZ2thbnBwbndua2pnd3JtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzMjAxODEsImV4cCI6MjA4NDg5NjE4MX0.YfKYz3XlnX3U8Nykq7CglD8lHpgnUq-Azk2r-xorX5k";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Temporary operator name (later: from login)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const OPERATOR_NAME = "WAREHOUSE_USER";</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>/***********************</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">   </span>* STATE</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">   </span>***********************/</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let batchCount = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let todayReadyCount = null;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const accepted = []; // [{awb, ts}]</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const MAX_ACCEPTED = 30;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// If an error modal is open, pause camera-driven scans</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let errorBlocking = false;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Allow multiple in-flight calls? We keep it lightweight:</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// If operator scans too fast, we still send calls.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// But if error happens, we block until OK.</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let inFlight = 0;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>const $ = (id) =&gt; document.getElementById(id);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function setStatus(dotClass, text, sub) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const dot = $("statusDot");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>dot.className = "dot" + (dotClass ? " " + dotClass : "");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("statusText").textContent = text;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("statusSub").textContent = sub || "";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function showErrorPopup(message) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>errorBlocking = true;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("modalMsg").textContent = message;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("modalBackdrop").style.display = "flex";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setStatus("red", "REJECTED", "Fix parcel and press OK");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function hideErrorPopup() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("modalBackdrop").style.display = "none";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>errorBlocking = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("awbInput").focus();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setStatus("", "Ready to scan", `In-flight: ${inFlight}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function renderAcceptedList() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const ul = $("acceptedList");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>ul.innerHTML = "";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>for (const item of accepted) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const li = document.createElement("li");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>li.className = "li";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>li.innerHTML = `</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="awb"&gt;${item.awb} &lt;span style="margin-left:8px; display:inline-block; width:8px; height:8px; border-radius:50%; background:#37d67a;"&gt;&lt;/span&gt;&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>&lt;div class="small"&gt;${new Date(item.ts).toLocaleTimeString()}&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>&lt;/div&gt;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>ul.appendChild(li);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function setCounters() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("batchCount").textContent = String(batchCount);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("todayReady").textContent = (todayReadyCount === null) ? "—" : String(todayReadyCount);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function todayIST() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const now = new Date();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const utc = now.getTime() + (now.getTimezoneOffset() * 60000);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const ist = new Date(utc + (5.5 * 3600000));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const yyyy = ist.getFullYear();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const mm = String(ist.getMonth() + 1).padStart(2, "0");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const dd = String(ist.getDate()).padStart(2, "0");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>return `${yyyy}-${mm}-${dd}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>async function fetchTodayCount() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const date = todayIST();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const url = `${SUPABASE_PROJECT_URL}${EDGE_COUNTS_PATH}?date=${encodeURIComponent(date)}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const res = await fetch(url, {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>method: "GET",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>headers: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>"Authorization": `Bearer ${AUTH_BEARER_TOKEN}`,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>"apikey": SUPABASE_ANON_KEY</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const json = await res.json();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (!json.ok) throw new Error(json.message || "counts failed");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>todayReadyCount = json.today_ready_count || 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>setCounters();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} catch (e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>console.log("counts_error", e);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>todayReadyCount = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>setCounters();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// SUCCESS should not interrupt; ERROR should interrupt (popup)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>async function submitAwb(awb) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const clean = String(awb || "").trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (!clean) return;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (errorBlocking) return; // don't accept new scans while error popup open</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>inFlight += 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setStatus("yellow", "Processing…", `${clean} | In-flight: ${inFlight}`);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const url = `${SUPABASE_PROJECT_URL}${EDGE_SCAN_READY_PATH}`;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const res = await fetch(url, {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>method: "POST",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>headers: {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>"Content-Type": "application/json",</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>"Authorization": `Bearer ${AUTH_BEARER_TOKEN}`,</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>"apikey": SUPABASE_ANON_KEY</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>},</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>body: JSON.stringify({ awb: clean, operator: OPERATOR_NAME })</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>const json = await res.json();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (json.result === "ACCEPTED") {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>batchCount += 1;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (typeof todayReadyCount === "number") todayReadyCount += 1;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>accepted.unshift({ awb: clean, ts: Date.now() });</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (accepted.length &gt; MAX_ACCEPTED) accepted.pop();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setCounters();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>renderAcceptedList();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>// tiny success signal, no blocking</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setStatus("green", "ACCEPTED", `${clean} | In-flight: ${inFlight}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>setTimeout(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (!errorBlocking) setStatus("", "Ready to scan", `In-flight: ${inFlight}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}, 250);</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>} else {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const msg = json.message || "Rejected";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>showErrorPopup(`${clean}\n\n${msg}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} catch (e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>showErrorPopup(`${clean}\n\nServer error: ${e?.message || e}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} finally {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>inFlight = Math.max(0, inFlight - 1);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>$("awbInput").value = "";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>$("awbInput").focus();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (!errorBlocking) setStatus("", "Ready to scan", `In-flight: ${inFlight}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Input handlers</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("submitBtn").addEventListener("click", () =&gt; submitAwb($("awbInput").value));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("awbInput").addEventListener("keydown", (e) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (e.key === "Enter") submitAwb($("awbInput").value);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("resetBatch").addEventListener("click", () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>batchCount = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>accepted.length = 0;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>renderAcceptedList();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setCounters();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setStatus("", "Batch reset", "Ready…");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>setTimeout(() =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (!errorBlocking) setStatus("", "Ready to scan", `In-flight: ${inFlight}`);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}, 350);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("closeModal").addEventListener("click", hideErrorPopup);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("modalBackdrop").addEventListener("click", (e) =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (e.target === $("modalBackdrop")) hideErrorPopup();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>/***********************</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">   </span>* CAMERA SCANNING</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">   </span>***********************/</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let stream = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let scanning = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let detector = null;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>async function startCamera() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (scanning) return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (!("BarcodeDetector" in window)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>showErrorPopup("This device/browser doesn't support native BarcodeDetector.\nUse input box or we can add QuaggaJS fallback later.");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>return;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>detector = new BarcodeDetector({ formats: ["code_128", "ean_13", "ean_8", "qr_code"] });</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>stream = await navigator.mediaDevices.getUserMedia({</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>video: { facingMode: "environment" },</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>audio: false</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const video = $("video");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>video.srcObject = stream;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>await video.play();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>scanning = true;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("toggleCamera").textContent = "Stop camera";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>requestAnimationFrame(scanLoop);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>function stopCamera() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>scanning = false;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>$("toggleCamera").textContent = "Start camera";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const video = $("video");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (video) video.pause();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (stream) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>stream.getTracks().forEach(t =&gt; t.stop());</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>stream = null;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Frame-level guard: prevents same barcode firing continuously from camera frames</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let lastSeen = "";</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>let lastSeenAt = 0;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>async function scanLoop() {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>if (!scanning) return;</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>const video = $("video");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (!errorBlocking) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>const barcodes = await detector.detect(video);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>if (barcodes &amp;&amp; barcodes.length) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const raw = (barcodes[0].rawValue || "").trim();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>const now = Date.now();</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>// Prevent rapid repeats from same frame stream (not a 2-3 sec lock)</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>if (raw &amp;&amp; (raw !== lastSeen || (now - lastSeenAt) &gt; 800)) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>lastSeen = raw;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>lastSeenAt = now;</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">            </span>submitAwb(raw);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">          </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">        </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} catch (_) {}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>requestAnimationFrame(scanLoop);</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>}</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("toggleCamera").addEventListener("click", async () =&gt; {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>try {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>if (scanning) stopCamera();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>else await startCamera();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>} catch (e) {</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>stopCamera();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">      </span>showErrorPopup("Camera start failed.\n" + (e?.message || e));</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">    </span>}</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>});</span></p>
+<p class="p2"><span class="s1"></span><br></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>// Init</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>setCounters();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>setStatus("", "Ready to scan", "Waiting…");</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>$("awbInput").focus();</span></p>
+<p class="p1"><span class="s1"><span class="Apple-converted-space">  </span>fetchTodayCount();</span></p>
+<p class="p1"><span class="s1">&lt;/script&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/body&gt;</span></p>
+<p class="p1"><span class="s1">&lt;/html&gt;</span></p>
+</body>
+</html>
